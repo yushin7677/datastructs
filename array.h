@@ -1,22 +1,7 @@
-#ifndef ARRAY_H
-#define ARRAY_H
-#endif
-
-/////////////////////////////////////////////////////////////////
-//                                                             //
-//                   Динамический массив                       //
-//                                                             //
-/////////////////////////////////////////////////////////////////
-
-//-------------------//
-// Структура массива //
-//-------------------//
-typedef struct Array_tag{
-
-	int *p;
-	int size;
-	
-} Array;
+#pragma once
+#include "structs.h"
+#include "help.h"
+#include "tree.h"
 
 //----------------------------------------------------------------------------------------------------------------------//
 // Функция создания нового массива() //
@@ -201,6 +186,16 @@ Array subArray(Array* arr, int first, int last){
 	if(first < arr->size && last >= 0) for(int i = first; i <= last; i++) pushIntoEnd(&newArr, arr->p[i]);
 };
 
+//-------------------------------------------------------------------------//
+// Функция объединения массивов ([указатель на Array],[указатель на Array]) //
+//-------------------------------------------------------------------------//
+int mergeArray(Array* arr1, Array* arr2){
+
+	for(int i = 0; i < arr2->size; i++) pushIntoEnd(arr1, arr2->p[i]);
+	return 0;
+
+};
+
 /////////////////////////////////////////////////////////////////
 //                                                             //
 //            Сортировка динамического массива                 //
@@ -330,22 +325,44 @@ Array sortedMerge(Array *arr1, Array *arr2){
 int mergeSort(Array *arr){ 
 
 	Array *arrays = malloc(arr->size * sizeof(Array));
+
 	for(int i = 0; i < arr->size; i++){
 		arrays[i] = createArray();
 		pushIntoEnd(&(arrays[i]), arr->p[i]);
 	};
+
 	int howManyArrays = arr->size;
+
 	while(howManyArrays > 1){
+
 		int i = 0;
+
 		while(i*2 < howManyArrays){
 			if((i*2 + 1) < howManyArrays) arrays[i] = sortedMerge(&arrays[i*2], &arrays[i*2 + 1]);
 			else arrays[i] = arrays[i*2];
 			i++;
 		};
+
 		howManyArrays = i;
+
 	};
 	*arr = arrays[0];
 	free(arrays);
+	return 0;
+	
+};
+
+//----------------------------------------------//
+// Cортировка пирамидкой ([указатель на Array]) //
+//----------------------------------------------//
+int pyramidSort(Array *arr){ 
+
+	BiTree biTree = createBiTree();
+	if(arr->size > 0) biTree.root->value = arr->p[0];
+	for(int i = 1; i < arr->size; i++) addValue(&biTree, arr->p[i]);
+	free(arr->p);
+	arr->size = 0;
+	*arr = traversalBiTree(&biTree);
 	return 0;
 	
 };
