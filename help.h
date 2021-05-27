@@ -1,6 +1,4 @@
-#ifndef _HELP_H
-#define _HELP_H
-#endif
+#pragma once
 
 int min(int a, int b){
 	if(a < b) return a;
