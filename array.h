@@ -207,15 +207,9 @@ int mergeArray(Array* arr1, Array* arr2){
 //----------------------------------------------------------------------------------------------------------------------//
 int bubbleSort(Array *arr){ 
 
-	for(int i = 1; i < arr->size; i++){
-
-		for(int j = 0; j < arr->size - i; j++){
-
+	for(int i = 1; i < arr->size; i++)
+		for(int j = 0; j < arr->size - i; j++)
 			if(arr->p[j] > arr->p[j + 1]) swap(&(arr->p[j]), &(arr->p[j + 1]));
-			
-		};
-
-	};
 
 	return 0;
 	
