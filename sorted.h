@@ -1,4 +1,5 @@
 #pragma once
+#include <stdio.h>
 #include "help.h"
 #include "array.h"
 #include "tree.h"
