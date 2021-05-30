@@ -8,12 +8,5 @@
 
 int main(){
 
-	HashTable hTable = createHashTable();
-	addWordToHashTable(&hTable, "qwerty");
-	printf("a = %d\n", checkWordInHashTable(&hTable, "qwerty"));
-	deleteWordFromHashTable(&hTable, "qwerty");
-	printf("a = %d\n", checkWordInHashTable(&hTable, "qwerty"));
-	addWordToHashTable(&hTable, "qwerty");
-	printf("a = %d\n", checkWordInHashTable(&hTable, "qwerty"));
 
 };

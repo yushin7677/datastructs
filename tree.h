@@ -1,5 +1,4 @@
 #pragma once
-#include "structs.h"
 #include "help.h"
 #include "array.h"
 
@@ -8,6 +7,18 @@
 //                     Префиксное дерево                       //
 //                                                             //
 /////////////////////////////////////////////////////////////////
+
+//---------------------------//
+// Структура вершины словаря //
+//---------------------------//
+typedef struct Vertex_Tag{
+
+	_Bool haveEnd;                 //Имеется ли здесь конец слова
+	char c;						   //Символ в вершине
+	int howManyChildren;		   //Количенство потомков
+	struct Vertex_Tag **children;  //Массив указателей на потомков
+	
+} Vertex;
 
 //----------------------------------------------------------------------------//
 // Функция создания новой вершины (возвращает указатель на созданную вершину) //
@@ -25,17 +36,6 @@ Vertex* createVertex(){
 	vertex->haveEnd = 0;
 
 	return vertex;
-
-};
-
-//--------------------------------------------//
-// функция создания нового префиксного дерева //
-//--------------------------------------------//
-Trie createTrie(){
-
-	Trie tr;
-	tr.root = createVertex();
-	return tr;
 
 };
 
@@ -59,23 +59,12 @@ int clearVertex(Vertex *v){
 
 };
 
-//----------------------------//
-// Очистка префиксного дерева //
-//----------------------------//
-int clearTrie(Trie *trie){
-
-	clearVertex(trie->root); // Удаляем поддеревья, идущие от потомков корневой вершины
-	return 0;
-
-};
-
 //------------------//
 // Добавление слова //
 //------------------//
-int addWord(Trie *trie, char *str){
+int addWord(Vertex *vertex, char *str){
 
-	int size = strlen(str);      //Узнаем размер строки
-	Vertex *vertex = trie->root; //Создаем указатель на корневую вершину
+	int size = strlen(str);      // Узнаем размер строки
 
 	// Запускаем цикл, имеющий столько итераций, сколько символов в строке и пойдем вглубь дерева
 	for(int i = 0; i < size; i++){
@@ -135,11 +124,10 @@ int addWord(Trie *trie, char *str){
 //----------------------------------------------------------------------------//
 // Проверка наличия слова в словаре (возвращает 0 - если нет и 1 - если есть) //
 //----------------------------------------------------------------------------//
-int chekWord(Trie *trie, char *str){
+int chekWord(Vertex *vertex, char *str){
 
-	int size = strlen(str);      //Узнаем размер строки
-	Vertex *vertex = trie->root; //Создаем указатель на корневую вершину
-	int haveWord = 1;            //Предпологаем, что слово str есть в дереве
+	int size = strlen(str);      // Узнаем размер строки
+	int haveWord = 1;            // Предпологаем, что слово str есть в дереве
 
 	// Проходимся вглубь дерева и останавливаемся, если:
 	// 1) поймем, что такого слова нет
@@ -181,11 +169,9 @@ int chekWord(Trie *trie, char *str){
 //---------------------------------------------------------------------------------//
 // Удаление слова (возвращает 0 - если слова нет и 1 - если слово успешно удалено) //
 //---------------------------------------------------------------------------------//
-int deleteWord(Trie *trie, char *str){
+int deleteWord(Vertex *vertex, char *str){
 
-	// Создадим 3 указателя (Изначально они все указывают на корень)
-	Vertex *vertex = trie->root;  // Указатель на текущую вершину
-	Vertex *parent = trie->root;  // Указатель на родителя
+	Vertex *parent = vertex;  // Создадим указатель на родителя
 
 	int size = strlen(str);       // Узнаем размер строки
 	int numb = 0;     			  // Номер удаляемого потомка в массиве children данной вершины
@@ -274,13 +260,12 @@ int printVertex(Vertex *vertex, char *str, int size){
 //---------------//
 // Вывод словаря //
 //---------------//
-int printTrie(Trie *trie){
+int printTrie(Vertex *vertex){
 
 	// Создаем динамическую строку, в которую будем записывать слова для вывода
 	// Для экономии памяти мы не будем создавать никаких новых строк
 	char *str = malloc(sizeof(char)); // Создаем пустую строку: выделяем память только под символ окончания
 	str[0] = 0;                       // и запишем этот символ
-	Vertex *vetrex = trie->root;      // Создаем указатель на корень дерева. В дальнейшем он будет смещатся к потомкам
 	printVertex(vetrex, str, 0);	  // Опускаемся к потомкам и ищем окончания слов. Передаем в функцию указатель на нашу строку и его явный размер
 	free(str);                        // Строка нам больше не нужна, поэтому освобождаем память, выделенную под нее
 	return 0;
@@ -292,6 +277,19 @@ int printTrie(Trie *trie){
 //                      Бинарное дерево                        //
 //                                                             //
 /////////////////////////////////////////////////////////////////
+
+//----------------------//
+// Структура би-вершины //
+//----------------------//
+typedef struct BiVertex_Tag{
+
+	int value;					     //Значение в вершине
+	int leftHeight;                  //Высота левого поддерева
+	int rightHeight;                 //Высота правого поддерева
+	struct BiVertex_Tag *leftChild;  //Указатель на левого потомка
+	struct BiVertex_Tag *rightChild; //Указатель на правого потомка
+	
+} BiVertex;
 
 //----------------------------------------------------------------------------------//
 // Функция создания новой би-вершины (возвращает указатель на созданную би-вершину) //
@@ -313,24 +311,13 @@ BiVertex* createBiVertex(){
 
 };
 
-//-----------------------------------//
-// Функция создания нового би-дерева //
-//-----------------------------------//
-BiTree createBiTree(){
-
-	BiTree biTree;
-	biTree.root = createBiVertex();
-	return biTree;
-
-};
-
 //------------------//
 // Добавление числа //
 //------------------//
-int addValue(BiTree *biTree, int value){
+int addValue(BiVertex *biVertex, int value){
 
-	BiVertex *biVertex = biTree->root; // Создаем указатель на корневую вершину
-	_Bool haveEnd = 0;                 // Переменная, говорящая, закончили ли мы искать место для нового значения
+	BiVertex *root = biVertex; // Запомним корневую вершину
+	_Bool haveEnd = 0;         // Переменная, говорящая, закончили ли мы искать место для нового значения
 
 	// Пока не закончим искать место для value, выполняем действия:
 	while(!haveEnd){
@@ -371,8 +358,7 @@ int addValue(BiTree *biTree, int value){
 
 	};
 
-	calcHeights(biTree->root); // пересчитаем высоты
-	// balancingBiVertex(biTree->root); однократная балансировка
+	calcHeights(root); // пересчитаем высоты
 	
 	return 0;
 
@@ -381,9 +367,8 @@ int addValue(BiTree *biTree, int value){
 //-------------//
 // Поиск числа //
 //-------------//
-int checkValue(BiTree *biTree, int value){
+int checkValue(BiVertex *biVertex, int value){
 
-	BiVertex *biVertex = biTree->root; // Создаем указатель на корневую вершину
 	_Bool haveValue	= 1;			   // Предположим, что данное число в дереве есть
 	_Bool haveEnd = 0;                 // Переменная, говорящая, закончили ли мы искать место для нового значения
 
@@ -431,12 +416,12 @@ int checkValue(BiTree *biTree, int value){
 //----------------//
 // Удаление числа //
 //----------------//
-int deleteValue(BiTree *biTree, int value){
+int deleteValue(BiVertex *biVertex, int value){
 
-	BiVertex *biVertex = biTree->root; // Создаем указатель на корневую вершину
-	BiVertex *parent = biTree->root;   // Создаем указатель на родителя, потомка которого удалим
-	_Bool haveValue	= 1;			   // Предположим, что данное число в дереве есть
-	_Bool haveEnd = 0;                 // Переменная, говорящая, закончили ли мы искать место для нового значения
+	BiVertex *root = biVertex;     // Запомним корневую вершину
+	BiVertex *parent = biVertex;   // Создаем указатель на родителя, потомка которого удалим
+	_Bool haveValue	= 1;		   // Предположим, что данное число в дереве есть
+	_Bool haveEnd = 0;             // Переменная, говорящая, закончили ли мы искать место для нового значения
 
 	// Пока не закончим искать место для value, выполняем действия:
 	while(!haveEnd){
@@ -519,7 +504,7 @@ int deleteValue(BiTree *biTree, int value){
 
 	};
 
-	calcHeights(biTree->root);
+	calcHeights(root);
 	
 	return haveValue;
 
@@ -655,19 +640,6 @@ BiVertex* balancingBiVertex(BiVertex *biVertex){
 
 };
 
-//------------------------//
-// Балансировка би-дерева //
-//------------------------//
-int balancingBiTree(BiTree *biTree){
-
-	biTree->root = balancingBiVertex(biTree->root);
-	return 0;
-
-};
-
-Array createArray();// Костыльная вставка
-int mergeArray(Array* arr1, Array* arr2); // Костыльная вставка
-
 //----------------------------//
 // Обход поддерева би-вершины //
 //----------------------------//
@@ -692,16 +664,6 @@ Array traversalBiVertex(BiVertex *biVertex){
 		pushIntoEnd(&arr, biVertex->value);
 	};
 
-	return arr;
-
-};
-
-//-----------------//
-// Обход би-дерева //
-//-----------------//
-Array traversalBiTree(BiTree *biTree){
-
-	Array arr = traversalBiVertex(biTree->root);
 	return arr;
 
 };
