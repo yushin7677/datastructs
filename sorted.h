@@ -48,16 +48,6 @@ int combSort(Array *arr){
 	
 };
 
-//-------------------------------------------//
-// Быстрая сортировка ([указатель на Array]) //
-//-------------------------------------------//
-int quickSort(Array *arr){ 
-
-	shortQuickSort(arr, 0, arr->size - 1);
-	return 0;
-	
-};
-
 //------------------------------------------------------------------//
 // Быстрая сортировка подмассива ([указатель на Array],[int],[int]) //
 //------------------------------------------------------------------//
@@ -86,6 +76,16 @@ int shortQuickSort(Array *arr, int first, int last){
 	
 };
 
+//-------------------------------------------//
+// Быстрая сортировка ([указатель на Array]) //
+//-------------------------------------------//
+int quickSort(Array *arr){ 
+
+	shortQuickSort(arr, 0, arr->size - 1);
+	return 0;
+	
+};
+
 //-------------------------------------------------------------------------------//
 // Cлиянием 2 массивов с сортировкой([указатель на Array], [указатель на Array]) //
 //-------------------------------------------------------------------------------//
@@ -97,11 +97,11 @@ Array sortedMerge(Array *arr1, Array *arr2){
 	while(i < arr1->size && j < arr2->size){
 
 		if(arr1->p[i] < arr2->p[j]){
-			pushIntoEnd(&arr3, arr1->p[i]);
+			insertToEndArray(&arr3, arr1->p[i]);
 			i++;
 		}
 		else{
-			pushIntoEnd(&arr3, arr2->p[j]);
+			insertToEndArray(&arr3, arr2->p[j]);
 			j++;
 		};
 
@@ -109,12 +109,12 @@ Array sortedMerge(Array *arr1, Array *arr2){
 	};
 
 	while(i < arr1->size){
-		pushIntoEnd(&arr3, arr1->p[i]);
+		insertToEndArray(&arr3, arr1->p[i]);
 		i++;
 	};
 
 	while(j < arr2->size){
-		pushIntoEnd(&arr3, arr2->p[j]);
+		insertToEndArray(&arr3, arr2->p[j]);
 		j++;
 	};
 
@@ -130,7 +130,7 @@ int mergeSort(Array *arr){
 
 	for(int i = 0; i < arr->size; i++){
 		arrays[i] = createArray();
-		pushIntoEnd(&(arrays[i]), arr->p[i]);
+		insertToEndArray(&(arrays[i]), arr->p[i]);
 	};
 
 	int howManyArrays = arr->size;
@@ -159,12 +159,12 @@ int mergeSort(Array *arr){
 //----------------------------------------------//
 int pyramidSort(Array *arr){ 
 
-	BiVertex biVertex = createBibiVertex();
+	BiVertex *biVertex = createBiVertex();
 	if(arr->size > 0) biVertex->value = arr->p[0];
-	for(int i = 1; i < arr->size; i++) addValue(&biVertex, arr->p[i]);
+	for(int i = 1; i < arr->size; i++) addValue(biVertex, arr->p[i]);
 	free(arr->p);
 	arr->size = 0;
-	*arr = traversalBiVertex(&biVertex);
+	*arr = traversalBiVertex(biVertex);
 	return 0;
 	
 };

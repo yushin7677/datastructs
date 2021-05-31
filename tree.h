@@ -24,7 +24,7 @@ typedef struct Vertex_Tag{
 //----------------------------------------------------------------------------//
 // Функция создания новой вершины (возвращает указатель на созданную вершину) //
 //----------------------------------------------------------------------------//
-Vertex* createVertex(){
+Vertex* createVertex(void){
 
 	//Создаем указатель на новую вершину. Под саму вершину выделяем под нее память
 	Vertex *vertex;
@@ -65,7 +65,7 @@ int clearVertex(Vertex *v){
 //------------------//
 int addWord(Vertex *vertex, char *str){
 
-	int size = strlen(str);      // Узнаем размер строки
+	int size = strlen(str);// Узнаем размер строки
 
 	// Запускаем цикл, имеющий столько итераций, сколько символов в строке и пойдем вглубь дерева
 	for(int i = 0; i < size; i++){
@@ -77,9 +77,13 @@ int addWord(Vertex *vertex, char *str){
 
 			// Найдем j такое, что str[i] > children[j-1]->c и str[i] <= children[j]->c
 			int j = 0;
-			for(int k = 0; k < vertex->howManyChildren; k++){
-				if(str[i] > vertex->children[j]->c) j++;
-				else break;
+			_Bool stop = 0;
+			while(!stop){
+				if(j < vertex->howManyChildren){
+					if(str[i] <= vertex->children[j]->c) stop = 1;
+					else j++;
+				}
+				else stop = 1;
 			};
 
 			// Если нет потомков с символом, совпадающим с str[i], то создаем новую вершину
@@ -125,7 +129,7 @@ int addWord(Vertex *vertex, char *str){
 //----------------------------------------------------------------------------//
 // Проверка наличия слова в словаре (возвращает 0 - если нет и 1 - если есть) //
 //----------------------------------------------------------------------------//
-int chekWord(Vertex *vertex, char *str){
+int checkWord(Vertex *vertex, char *str){
 
 	int size = strlen(str);      // Узнаем размер строки
 	int haveWord = 1;            // Предпологаем, что слово str есть в дереве
@@ -142,9 +146,13 @@ int chekWord(Vertex *vertex, char *str){
 
 			// Найдем j такое, что str[i] > children[j-1]->c и str[i] <= children[j]->c
 			int j = 0;
-			for(int k = 0; k < vertex->howManyChildren; k++){
-				if(str[i] > vertex->children[j]->c) j++;
-				else break;
+			_Bool stop = 0;
+			while(!stop){
+				if(j < vertex->howManyChildren){
+					if(str[i] <= vertex->children[j]->c) stop = 1;
+					else j++;
+				}
+				else stop = 1;
 			};
 
 			// Если нет потомков с символом, совпадающим с str[i], значит слова нет и цикл останавливается
@@ -190,9 +198,13 @@ int deleteWord(Vertex *vertex, char *str){
 
 			// Найдем j такое, что str[i] > children[j-1]->c и str[i] <= children[j]->c
 			int j = 0;
-			for(int k = 0; k < vertex->howManyChildren; k++){
-				if(str[i] > vertex->children[j]->c) j++;
-				else break;
+			_Bool stop = 0;
+			while(!stop){
+				if(j < vertex->howManyChildren){
+					if(str[i] <= vertex->children[j]->c) stop = 1;
+					else j++;
+				}
+				else stop = 1;
 			};
 
 			// Если нет потомков с символом, совпадающим с str[i], значит слова нет и цикл останавливается
@@ -221,19 +233,27 @@ int deleteWord(Vertex *vertex, char *str){
 	// значит слово есть и его нужно удалить
 	if(vertex->haveEnd == 1 && haveWord){
 
-		// Чтобы удалить слово, нужно удалить ветку, ведущую в конец ТОЛЬКО этого слова.
-		// Поэтому мы заранее указали родителя и номер потомка
-		clearVertex(parent->children[numb]);  // Удалим поддерево
-		free(parent->children[numb]);         // Освобождаем память 
+		// Если ветка не имеет продолжений, то есть, нет более длинных слов, начинающуюся как это
+		if(vertex->howManyChildren == 0){
 
-		// В массиве children сдвигаем все указатели на потомков после numb включительно влево
-		for(int i = numb; i < parent->howManyChildren - 1; i++) parent->children[i] = parent->children[i + 1];
+			// То, чтобы удалить слово, нужно удалить ветку, ведущую в конец ТОЛЬКО этого слова.
+			// Поэтому мы заранее указали родителя и номер потомка
+			clearVertex(parent->children[numb]);  // Удалим поддерево
+			free(parent->children[numb]);         // Освобождаем память 
 
-		// Освобождаем память, так как потомков стало меньше, а значит и указателей стало меньше
-		parent->children = realloc(parent->children, (parent->howManyChildren - 1)*sizeof(Vertex*));
-		parent->howManyChildren--;
+			// В массиве children сдвигаем все указатели на потомков после numb включительно влево
+			for(int i = numb; i < parent->howManyChildren - 1; i++) parent->children[i] = parent->children[i + 1];
+
+			// Освобождаем память, так как потомков стало меньше, а значит и указателей стало меньше
+			parent->children = realloc(parent->children, (parent->howManyChildren - 1)*sizeof(Vertex*));
+			parent->howManyChildren--;
+		}
+
+		// Иначе просто уберем метку haveEnd
+		else vertex->haveEnd = 0;
 
 		return 1;
+
 	}
 
 	// Иначе слова нет
@@ -267,7 +287,7 @@ int printTrie(Vertex *vertex){
 	// Для экономии памяти мы не будем создавать никаких новых строк
 	char *str = malloc(sizeof(char)); // Создаем пустую строку: выделяем память только под символ окончания
 	str[0] = 0;                       // и запишем этот символ
-	printVertex(vetrex, str, 0);	  // Опускаемся к потомкам и ищем окончания слов. Передаем в функцию указатель на нашу строку и его явный размер
+	printVertex(vertex, str, 0);	  // Опускаемся к потомкам и ищем окончания слов. Передаем в функцию указатель на нашу строку и его явный размер
 	free(str);                        // Строка нам больше не нужна, поэтому освобождаем память, выделенную под нее
 	return 0;
 
@@ -295,7 +315,7 @@ typedef struct BiVertex_Tag{
 //----------------------------------------------------------------------------------//
 // Функция создания новой би-вершины (возвращает указатель на созданную би-вершину) //
 //----------------------------------------------------------------------------------//
-BiVertex* createBiVertex(){
+BiVertex* createBiVertex(void){
 
 	//Создаем указатель на новую би-вершину. Под саму би-вершину выделяем память
 	BiVertex *biVertex;
@@ -309,6 +329,70 @@ BiVertex* createBiVertex(){
 	biVertex->rightChild = NULL;
 
 	return biVertex;
+
+};
+
+//-----------------------//
+// Полный пересчет высот //
+//-----------------------//
+int calcHeights(BiVertex *biVertex){
+
+	if (biVertex->leftChild != NULL){
+
+		calcHeights(biVertex->leftChild);
+		biVertex->leftHeight = max(biVertex->leftChild->leftHeight, biVertex->leftChild->rightHeight) + 1;
+	
+	}
+	else biVertex->leftHeight = 0;
+
+	if (biVertex->rightChild != NULL){
+
+		calcHeights(biVertex->rightChild);
+		biVertex->rightHeight = max(biVertex->rightChild->leftHeight, biVertex->rightChild->rightHeight) + 1;
+
+	}
+	else biVertex->rightHeight = 0;
+
+	return 0;
+
+};
+
+//------------------------//
+// Быстрый пересчет высот //
+//------------------------//
+int fastCalcHeights(BiVertex *biVertex){
+
+	if (biVertex->leftChild != NULL){
+
+		if (biVertex->leftChild->leftChild != NULL)
+			biVertex->leftChild->leftHeight = max(biVertex->leftChild->leftChild->leftHeight, biVertex->leftChild->leftChild->rightHeight) + 1;
+		else biVertex->leftChild->leftHeight = 0;
+
+		if (biVertex->leftChild->rightChild != NULL)
+			biVertex->leftChild->rightHeight = max(biVertex->leftChild->rightChild->leftHeight, biVertex->leftChild->rightChild->rightHeight) + 1;
+		else biVertex->leftChild->rightHeight = 0;
+
+		biVertex->leftHeight = max(biVertex->leftChild->leftHeight, biVertex->leftChild->rightHeight) + 1;
+	
+	}
+	else biVertex->leftHeight = 0;
+
+	if (biVertex->rightChild != NULL){
+
+		if (biVertex->rightChild->leftChild != NULL)
+			biVertex->rightChild->leftHeight = max(biVertex->rightChild->leftChild->leftHeight, biVertex->rightChild->leftChild->rightHeight) + 1;
+		else biVertex->rightChild->leftHeight = 0;
+
+		if (biVertex->rightChild->rightChild != NULL)
+			biVertex->rightChild->rightHeight = max(biVertex->rightChild->rightChild->leftHeight, biVertex->rightChild->rightChild->rightHeight) + 1;
+		else biVertex->rightChild->rightHeight = 0;
+		
+		biVertex->rightHeight = max(biVertex->rightChild->leftHeight, biVertex->rightChild->rightHeight) + 1;
+
+	}
+	else biVertex->rightHeight = 0;
+
+	return 0;
 
 };
 
@@ -424,7 +508,7 @@ int deleteValue(BiVertex *biVertex, int value){
 	_Bool haveValue	= 1;		   // Предположим, что данное число в дереве есть
 	_Bool haveEnd = 0;             // Переменная, говорящая, закончили ли мы искать место для нового значения
 
-	// Пока не закончим искать место для value, выполняем действия:
+	// Пока не закончим искать value, выполняем действия:
 	while(!haveEnd){
 
 		// Если число меньше значения данной би-вершины, то смотрим левого потомка
@@ -488,12 +572,14 @@ int deleteValue(BiVertex *biVertex, int value){
 
 			}
 			else if(biVertex->leftChild == NULL && biVertex->rightChild != NULL){
-				if(biVertex == biTree->root) biTree->root = biVertex->rightChild;
-				else parent->leftChild = biVertex->rightChild;
+				if(biVertex == root) root = biVertex->rightChild;
+				else if(biVertex == parent->leftChild) parent->leftChild = biVertex->rightChild;
+				else if(biVertex == parent->rightChild) parent->rightChild = biVertex->rightChild;
 			}
 			else if(biVertex->leftChild != NULL && biVertex->rightChild == NULL){
-				if(biVertex == biTree->root) biTree->root = biVertex->leftChild;
-				else parent->leftChild = biVertex->leftChild;
+				if(biVertex == root) root = biVertex->leftChild;
+				else if(biVertex == parent->leftChild) parent->leftChild = biVertex->leftChild;
+				else if(biVertex == parent->rightChild) parent->rightChild = biVertex->leftChild;
 			};
 
 
@@ -508,70 +594,6 @@ int deleteValue(BiVertex *biVertex, int value){
 	calcHeights(root);
 	
 	return haveValue;
-
-};
-
-//-----------------------//
-// Полный пересчет высот //
-//-----------------------//
-int calcHeights(BiVertex *biVertex){
-
-	if (biVertex->leftChild != NULL){
-
-		calcHeights(biVertex->leftChild);
-		biVertex->leftHeight = max(biVertex->leftChild->leftHeight, biVertex->leftChild->rightHeight) + 1;
-	
-	}
-	else biVertex->leftHeight = 0;
-
-	if (biVertex->rightChild != NULL){
-
-		calcHeights(biVertex->rightChild);
-		biVertex->rightHeight = max(biVertex->rightChild->leftHeight, biVertex->rightChild->rightHeight) + 1;
-
-	}
-	else biVertex->rightHeight = 0;
-
-	return 0;
-
-};
-
-//------------------------//
-// Быстрый пересчет высот //
-//------------------------//
-int fastCalcHeights(BiVertex *biVertex){
-
-	if (biVertex->leftChild != NULL){
-
-		if (biVertex->leftChild->leftChild != NULL)
-			biVertex->leftChild->leftHeight = max(biVertex->leftChild->leftChild->leftHeight, biVertex->leftChild->leftChild->rightHeight) + 1;
-		else biVertex->leftChild->leftHeight = 0;
-
-		if (biVertex->leftChild->rightChild != NULL)
-			biVertex->leftChild->rightHeight = max(biVertex->leftChild->rightChild->leftHeight, biVertex->leftChild->rightChild->rightHeight) + 1;
-		else biVertex->leftChild->rightHeight = 0;
-
-		biVertex->leftHeight = max(biVertex->leftChild->leftHeight, biVertex->leftChild->rightHeight) + 1;
-	
-	}
-	else biVertex->leftHeight = 0;
-
-	if (biVertex->rightChild != NULL){
-
-		if (biVertex->rightChild->leftChild != NULL)
-			biVertex->rightChild->leftHeight = max(biVertex->rightChild->leftChild->leftHeight, biVertex->rightChild->leftChild->rightHeight) + 1;
-		else biVertex->rightChild->leftHeight = 0;
-
-		if (biVertex->rightChild->rightChild != NULL)
-			biVertex->rightChild->rightHeight = max(biVertex->rightChild->rightChild->leftHeight, biVertex->rightChild->rightChild->rightHeight) + 1;
-		else biVertex->rightChild->rightHeight = 0;
-		
-		biVertex->rightHeight = max(biVertex->rightChild->leftHeight, biVertex->rightChild->rightHeight) + 1;
-
-	}
-	else biVertex->rightHeight = 0;
-
-	return 0;
 
 };
 
@@ -650,19 +672,19 @@ Array traversalBiVertex(BiVertex *biVertex){
 
 	if(biVertex->leftChild != NULL){
 		arr = traversalBiVertex(biVertex->leftChild);
-		pushIntoEnd(&arr, biVertex->value);
+		insertToEndArray(&arr, biVertex->value);
 		if(biVertex->rightChild != NULL){
 			Array arr2 = traversalBiVertex(biVertex->rightChild);
 			mergeArray(&arr, &arr2);
 		};
 	}
 	else if(biVertex->rightChild != NULL){
-		pushIntoEnd(&arr, biVertex->value);
+		insertToEndArray(&arr, biVertex->value);
 		Array arr2 = traversalBiVertex(biVertex->rightChild);
 		mergeArray(&arr, &arr2);
 	}
 	else{
-		pushIntoEnd(&arr, biVertex->value);
+		insertToEndArray(&arr, biVertex->value);
 	};
 
 	return arr;

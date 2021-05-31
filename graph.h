@@ -31,7 +31,7 @@ typedef struct Graph_tag{
 //------------------------//
 // функция создания графа //
 //------------------------//
-Graph createGraph(){
+Graph createGraph(void){
 	
 	Graph graph;
 	graph.gVertexes = NULL;
@@ -43,7 +43,7 @@ Graph createGraph(){
 //--------------------------------//
 // функция создания вершины графа //
 //--------------------------------//
-GraphVertex* createGraphVertex(){
+GraphVertex* createGraphVertex(void){
 
 	//Создаем указатель на новую вершину графа, выделяя под нее память 
 	GraphVertex *gVertex = malloc(sizeof(GraphVertex));
@@ -83,22 +83,22 @@ int addEdge(GraphVertex *gVertex1, GraphVertex *gVertex2){
 
 };
 
-//--------------------------------------------------------------------------//
-// проверка наличия вершины в данном графе (в случае неудачи возвращает -1) //
-//--------------------------------------------------------------------------//
+//-------------------------------------------------------------------------------------------------------//
+// проверка наличия вершины в данном графе (в случае успеха вернет номер gVertex; неудачи возвращает -1) //
+//-------------------------------------------------------------------------------------------------------//
 int checkGraphVertex(Graph *graph, GraphVertex *gVertex){
 	
 	int i = 0;
 	while(i < graph->size && graph->gVertexes[i] != gVertex) i++;
 
 	if(i == graph->size) return -1; // Если в массиве graph->gVertexes нет gVertex, значит такой вершины нет
-	else return i; 				    // В противном случае вернем номер соединения
+	else return i; 				    // В противном случае вернем номер вершины
 
 };
 
-//---------------------------------------------------------//
-// проверка наличия ребра (в случае неудачи возвращает -1) //
-//---------------------------------------------------------//
+//----------------------------------------------------------------------------------------------------//
+// проверка наличия ребра (в случае успеха вернет номер соединения в gVertex1; неудачи возвращает -1) //
+//----------------------------------------------------------------------------------------------------//
 int checkEdge(GraphVertex *gVertex1, GraphVertex *gVertex2){
 	
 	int i = 0;
@@ -117,10 +117,11 @@ int deleteEdge(GraphVertex *gVertex1, GraphVertex *gVertex2){
 	int num = checkEdge(gVertex1, gVertex2);
 
 	// Если такое ребро есть, то удалим его и сдвинем массив указателей влево
-	if(num >=0 ){
+	if(num >= 0){
 		for(int i = num; i < gVertex1->degree - 1; i++) gVertex1->connect[i] = gVertex1->connect[i + 1];
 		gVertex1->connect = realloc(gVertex1->connect, (gVertex1->degree - 1) * sizeof(GraphVertex*));
 		gVertex1->degree--;
+		return 1;
 	}
 
 	// Иначе вернем 0
@@ -145,6 +146,7 @@ int deleteGraphVertex(Graph *graph, GraphVertex *gVertex){
 		for(int i = num; i < graph->size - 1; i++) graph->gVertexes[i] = graph->gVertexes[i + 1];
 		graph->gVertexes = realloc(graph->gVertexes, (graph->size - 1) * sizeof(GraphVertex*));
 		graph->size--;
+		return 1;
 	}
 
 	// Иначе вернем 0
@@ -160,14 +162,15 @@ int broadSearch(Graph *graph, GraphVertex *gVertex1, GraphVertex *gVertex2){
 	int s = 0;
 	GraphVertex **gVertexes, **newGVertexes = NULL;
 	gVertexes = malloc(sizeof(GraphVertex*));
-	newGVertexes = malloc(sizeof(GraphVertex*));
 	gVertexes[0] = gVertex1;
+	gVertex1->internal = 1;
 	int size = 1;
 	int newSize = 0;
 	int haveRoute = 2; // Начальное число
 
 	while(haveRoute == 2){
 
+		newGVertexes = malloc(sizeof(GraphVertex*));
 		haveRoute = 0;
 		newSize = 0;
 
@@ -177,8 +180,8 @@ int broadSearch(Graph *graph, GraphVertex *gVertex1, GraphVertex *gVertex2){
 
 			for (int j = 0; j < gVertexes[i]->degree; j++){
 
-				if(gVertexes[i]->connect[j] == gVertex2) haveRoute = 1; 
-				else if(gVertexes[i]->connect[j]->internal == 0){
+				if(gVertexes[i]->connect[j] == gVertex2) haveRoute = 1;
+				else if(gVertexes[i]->connect[j]->internal == 0){ 
 
 					newGVertexes = realloc(newGVertexes, (newSize + 1) * sizeof(GraphVertex*));
 
@@ -187,10 +190,12 @@ int broadSearch(Graph *graph, GraphVertex *gVertex1, GraphVertex *gVertex2){
 					newSize++;
 
 				};
+
 			};
 		};
 
 		gVertexes = newGVertexes;
+		newGVertexes = NULL;
 		size = newSize;
 		s++;
  

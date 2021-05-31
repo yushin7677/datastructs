@@ -30,7 +30,7 @@ typedef struct List_tag{
 //-------------------------------------------------//
 // Функция создания 1-списка ([указатель на List]) //
 //-------------------------------------------------//
-List createList(){ 
+List createList(void){ 
 
 	List list;
 	list.first = NULL;
@@ -72,6 +72,9 @@ int insertFirst(List *list, int value){
 	node->value = value;
 	node->next = list->first;
 	list->first = node;
+
+	// Если перед добавлением список был пуст, то первый элемент также станет последним
+	if(list->last == NULL) list->last = list->first;
 
 	return 0;
 	
@@ -128,7 +131,7 @@ int deleteLast(List *list){
 			list->first = NULL;
 			free(node);
 
-		};
+		}
 
 		// Иначе..
 		else{
